@@ -1,0 +1,17 @@
+# Build outputs and local tooling
+**/target/
+.mvn-cache/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Local environment overrides
+.env
+
+# Terraform local state and environment-specific inputs
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+crash.log

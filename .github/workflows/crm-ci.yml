@@ -1,0 +1,41 @@
+name: CRM CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/crm/**'
+      - '.github/workflows/crm-ci.yml'
+  pull_request:
+    paths:
+      - 'app/crm/**'
+      - '.github/workflows/crm-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crm-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-package:
+    name: Test, package, and container-build CRM
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/crm
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: app/crm/pom.xml
+      - name: Run tests
+        run: ./mvnw --batch-mode test
+      - name: Package application
+        run: ./mvnw --batch-mode package -DskipTests
+      - name: Build container image
+        run: docker build --tag aiops-crm:${{ github.sha }} .

@@ -1,0 +1,11 @@
+# This file is safe to commit. Copy it to terraform.tfvars (ignored by Git) before planning.
+subscription_id = "00000000-0000-0000-0000-000000000000"
+location        = "centralindia"
+project_name    = "aiops"
+environment     = "dev"
+
+tags = {
+  owner      = "venquet"
+  managed_by = "terraform"
+  workload   = "aiops-crm"
+}

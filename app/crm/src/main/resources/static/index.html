@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AIOps CRM operations console">
+  <title>AIOps CRM</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="AIOps CRM home"><span class="brand-mark">A</span>AIOps <strong>CRM</strong></a>
+    <div class="service-status"><span class="status-dot" aria-hidden="true"></span><span id="service-status">Checking service…</span></div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Phase 1 · Operations baseline</p>
+        <h1>Your customer operations,<br><em>in one calm place.</em></h1>
+        <p class="hero-copy">Manage customers and their orders while the service exposes the signals needed for later AIOps experiments.</p>
+      </div>
+      <div class="hero-actions">
+        <a class="button secondary" href="/actuator/health" target="_blank">Service health ↗</a>
+        <a class="button secondary" href="/actuator/prometheus" target="_blank">Metrics ↗</a>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="CRM overview">
+      <article class="metric-card"><span>Customers</span><strong id="customer-count">—</strong><small>Registered accounts</small></article>
+      <article class="metric-card"><span>Orders</span><strong id="order-count">—</strong><small>All recorded orders</small></article>
+      <article class="metric-card"><span>Pending</span><strong id="pending-count">—</strong><small>Orders awaiting fulfilment</small></article>
+    </section>
+
+    <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
+
+    <section class="workspace" aria-label="CRM workspace">
+      <article class="panel form-panel">
+        <div class="panel-heading"><div><p class="eyebrow">New record</p><h2>Add customer</h2></div></div>
+        <form id="customer-form" novalidate>
+          <label>Full name<input name="name" required maxlength="120" placeholder="e.g. Ada Lovelace"></label>
+          <label>Email address<input name="email" type="email" required maxlength="254" placeholder="ada@example.com"></label>
+          <button class="button primary" type="submit">Create customer <span>→</span></button>
+        </form>
+      </article>
+
+      <article class="panel list-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Directory</p><h2>Customers</h2></div><button class="icon-button" data-refresh="customers" aria-label="Refresh customers">↻</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Joined</th><th></th></tr></thead><tbody id="customer-list"></tbody></table></div>
+        <p id="customers-empty" class="empty-state" hidden>No customers yet. Add the first one using the form.</p>
+      </article>
+
+      <article class="panel form-panel">
+        <div class="panel-heading"><div><p class="eyebrow">New transaction</p><h2>Create order</h2></div></div>
+        <form id="order-form" novalidate>
+          <label>Customer<select name="customerId" id="order-customer" required><option value="">Choose a customer</option></select></label>
+          <label>Order number<input name="orderNumber" required maxlength="40" placeholder="e.g. ORD-1001"></label>
+          <div class="inline-fields"><label>Total amount<input name="totalAmount" type="number" min="0.01" step="0.01" required placeholder="0.00"></label><label>Currency<input name="currency" required pattern="[A-Za-z]{3}" maxlength="3" value="USD"></label></div>
+          <button class="button primary" type="submit">Create order <span>→</span></button>
+        </form>
+      </article>
+
+      <article class="panel list-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Activity</p><h2>Recent orders</h2></div><button class="icon-button" data-refresh="orders" aria-label="Refresh orders">↻</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody id="order-list"></tbody></table></div>
+        <p id="orders-empty" class="empty-state" hidden>No orders yet. Create an order after adding a customer.</p>
+      </article>
+    </section>
+  </main>
+  <footer>Built as an observable baseline for AIOps learning.</footer>
+  <script src="/app.js"></script>
+</body>
+</html>
