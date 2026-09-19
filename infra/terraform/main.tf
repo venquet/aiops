@@ -21,6 +21,44 @@ resource "azurerm_log_analytics_workspace" "this" {
   tags                = local.tags
 }
 
+resource "azurerm_application_insights" "crm" {
+  name                = "appi-${local.name_prefix}-crm"
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  workspace_id        = azurerm_log_analytics_workspace.this.id
+  application_type    = "java"
+
+  # This keeps the learning environment's telemetry ingestion bounded while
+  # retaining enough signal for normal operation and fault-injection exercises.
+  daily_data_cap_in_gb                 = 1
+  daily_data_cap_notifications_enabled = true
+  sampling_percentage                  = 100
+  internet_ingestion_enabled           = true
+  internet_query_enabled               = true
+  local_authentication_enabled         = true
+  tags                                 = local.tags
+}
+
+resource "azurerm_monitor_metric_alert" "crm_failed_requests" {
+  name                = "alert-${local.name_prefix}-crm-failed-requests"
+  resource_group_name = azurerm_resource_group.this.name
+  scopes              = [azurerm_application_insights.crm.id]
+  description         = "CRM has more than five failed HTTP requests in five minutes."
+  severity            = 2
+  frequency           = "PT1M"
+  window_size         = "PT5M"
+
+  criteria {
+    metric_namespace = "microsoft.insights/components"
+    metric_name      = "requests/failed"
+    aggregation      = "Count"
+    operator         = "GreaterThan"
+    threshold        = 5
+  }
+
+  tags = local.tags
+}
+
 resource "azurerm_container_registry" "this" {
   name                = replace("acr${var.project_name}${var.environment}", "-", "")
   location            = azurerm_resource_group.this.location
@@ -122,6 +160,11 @@ resource "azurerm_container_app" "crm" {
     value = random_password.postgres_admin.result
   }
 
+  secret {
+    name  = "application-insights-connection-string"
+    value = azurerm_application_insights.crm.connection_string
+  }
+
   template {
     min_replicas = 1
     max_replicas = 2
@@ -151,6 +194,14 @@ resource "azurerm_container_app" "crm" {
       env {
         name        = "DB_PASSWORD"
         secret_name = "db-password"
+      }
+      env {
+        name        = "APPLICATIONINSIGHTS_CONNECTION_STRING"
+        secret_name = "application-insights-connection-string"
+      }
+      env {
+        name  = "OTEL_SERVICE_NAME"
+        value = "aiops-crm"
       }
     }
   }

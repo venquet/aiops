@@ -4,6 +4,8 @@ This directory defines the initial Azure foundation for the AIOps CRM:
 
 - Resource group
 - Log Analytics workspace for application and platform logs
+- Workspace-based Application Insights for CRM traces, requests, dependencies, and JVM metrics
+- A notification-only alert when CRM request failures exceed five in five minutes
 - Azure Container Registry (ACR) for CRM images
 - Azure Container Apps environment for the eventual CRM deployment
 - Azure Database for PostgreSQL Flexible Server and the CRM database
@@ -36,3 +38,9 @@ The default example uses `centralindia` and `aiops-dev`; change these before dep
 The `Deploy CRM to Azure` GitHub Actions workflow packages the CRM, builds an image in ACR, and updates the Container App when `app/crm` changes on `main`. It uses GitHub OIDC with a branch-scoped Azure federated credential, so GitHub stores no Azure client secret. The credential is granted `Contributor` on this development resource group and `AcrPush` on its registry.
 
 Terraform state remains local for this learning environment. Do not add Terraform applies to GitHub Actions until state is moved to a protected remote backend.
+
+## Observability
+
+The CRM image includes the Azure Monitor Application Insights Java agent. Terraform injects the workspace-based Application Insights connection string as a Container App secret; it is not committed to Git.
+
+The initial metric alert deliberately has no action group. It records a real Azure Monitor alert without sending notifications or triggering remediation. Aurora's least-privilege Azure identities can read the related metrics and Log Analytics data. Later, we can add an approved alert delivery path and a separately scoped remediation identity.

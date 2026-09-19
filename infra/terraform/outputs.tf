@@ -22,3 +22,8 @@ output "crm_url" {
   description = "Public CRM URL after the Container App is deployed."
   value       = "https://${azurerm_container_app.crm.ingress[0].fqdn}"
 }
+
+output "application_insights_name" {
+  description = "Application Insights resource that receives CRM telemetry."
+  value       = azurerm_application_insights.crm.name
+}
