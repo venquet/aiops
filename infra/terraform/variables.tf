@@ -40,3 +40,15 @@ variable "tags" {
     workload   = "aiops-crm"
   }
 }
+
+variable "postgres_admin_username" {
+  description = "Administrator username for the development PostgreSQL server."
+  type        = string
+  default     = "crmadmin"
+}
+
+variable "container_image_tag" {
+  description = "Initial CRM image tag deployed to Azure Container Apps."
+  type        = string
+  default     = "bootstrap"
+}

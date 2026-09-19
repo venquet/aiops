@@ -1,0 +1,57 @@
+name: Deploy CRM to Azure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/crm/**'
+      - '.github/workflows/deploy-crm.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-crm-production
+  cancel-in-progress: false
+
+env:
+  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+  AZURE_CONTAINER_REGISTRY: ${{ vars.AZURE_CONTAINER_REGISTRY }}
+  AZURE_CONTAINER_APP: ${{ vars.AZURE_CONTAINER_APP }}
+
+jobs:
+  deploy:
+    name: Build and deploy CRM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: app/crm/pom.xml
+      - name: Package application
+        working-directory: app/crm
+        run: ./mvnw --batch-mode package -DskipTests
+      - name: Sign in to Azure using GitHub OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Build and publish image in Azure Container Registry
+        run: >-
+          az acr build
+          --registry "$AZURE_CONTAINER_REGISTRY"
+          --image "crm:${GITHUB_SHA}"
+          --file app/crm/Dockerfile
+          app/crm
+      - name: Deploy image to Azure Container Apps
+        run: >-
+          az containerapp update
+          --name "$AZURE_CONTAINER_APP"
+          --resource-group "$AZURE_RESOURCE_GROUP"
+          --image "${AZURE_CONTAINER_REGISTRY}.azurecr.io/crm:${GITHUB_SHA}"

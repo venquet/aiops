@@ -12,3 +12,13 @@ output "container_app_environment_id" {
   description = "Container Apps environment ID for the CRM deployment stage."
   value       = azurerm_container_app_environment.this.id
 }
+
+output "postgresql_host" {
+  description = "PostgreSQL server hostname used by the CRM container."
+  value       = azurerm_postgresql_flexible_server.this.fqdn
+}
+
+output "crm_url" {
+  description = "Public CRM URL after the Container App is deployed."
+  value       = "https://${azurerm_container_app.crm.ingress[0].fqdn}"
+}
